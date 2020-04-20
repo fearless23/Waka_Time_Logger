@@ -3,16 +3,20 @@ import base64
 from datetime import timedelta, date, datetime
 import pandas as pd
 import os
-import configparser
+from configparser import ConfigParser
 
-config = configparser.ConfigParser()
-config.read('my_config.ini')
-
-FILE_NAME = config.get("Waka", "fileName")
-API_KEY = config.get("Waka", "apiKey")
-BASE_URL = config.get("Waka", "baseUrl")
-START_DATE = datetime.strptime(config.get("Waka", "startDate"), "%Y-%m-%d").date()
-
+# FILE_NAME = config.get("Waka", "fileName")
+# API_KEY = config.get("Waka", "apiKey")
+# BASE_URL = config.get("Waka", "baseUrl")
+# START_DATE = datetime.strptime(config.get("Waka", "startDate"), "%Y-%m-%d").date()
+#
+FILE_NAME = 'wakatime_durations.csv'
+API_KEY = '1e37da62-0087-444e-81d1-97415663b2c7'
+BASE_URL = 'https://wakatime.com/api/v1/users/current/durations?date='
+# START_DATE = datetime.strptime('2018-10-10', "%Y-%m-%d").date()
+START_DATE = '2019-06-01'
+# END_DATE = date.today()
+END_DATE = '2019-06-03'
 
 def prepare_request_header(api_key_in_bytes):
     b64_api_key = base64.b64encode(api_key_in_bytes).decode("utf-8")
@@ -41,6 +45,7 @@ def write_data_to_dataframe(df, start_date, end_date):
         response_json = get_durations_from_waka(d, prepare_request_header(str.encode(API_KEY)))
         try:
             data = response_json["data"]
+            print(data)
             data_dict = {}
             for duration_data in data:
                 project_name = duration_data["project"]
@@ -66,8 +71,9 @@ def run_the_program():
         print("It looks like this is the first time you run this script!")
         print("This is the start date: {0}".format(START_DATE))
         start_date = datetime.strptime(START_DATE, "%Y-%m-%d").date()
+        end_date = datetime.strptime(END_DATE, "%Y-%m-%d").date()
         df = pd.DataFrame(columns=["date", "project", "duration"])
-        write_data_to_dataframe(df, start_date, date.today())
+        write_data_to_dataframe(df, start_date, end_date)
         df.to_csv(FILE_NAME)
     else:
         df = pd.DataFrame.from_csv(FILE_NAME, header=0)
@@ -78,4 +84,5 @@ def run_the_program():
     print("Data collection stopped!")
 
 run_the_program()
+# print(START_DATE)
 
